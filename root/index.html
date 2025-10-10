@@ -1,1 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Option Multiplier</title>
+</head>
+<body>
+    <h1>Select an Option</h1>
+    <select id="optionSelect">
+        <option value="1">Option 1</option>
+        <option value="2">Option 2</option>
+        <option value="3">Option 3</option>
+    </select>
+    <button onclick="calculate()">Submit</button>
+    <p id="result"></p>
 
+    <script>
+        async function calculate() {
+            const option = document.getElementById('optionSelect').value;
+            const response = await fetch('https://pzori7o0r4.execute-api.ap-southeast-2.amazonaws.com/calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ option })
+            });
+            const data = await response.json();
+            document.getElementById('result').innerText = `Result: ${data.result}`;
+        }
+    </script>
+</body>
+</html>

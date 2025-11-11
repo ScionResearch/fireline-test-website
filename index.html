@@ -1,29 +1,205 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <title>Option Multiplier</title>
+  <meta charset="utf-8" />
+  <title>Fireline Construction Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; color: #222; }
+    h1 { margin-top: 0; }
+    fieldset { border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+    label { display: block; margin: 8px 0 4px; font-weight: 600; }
+    select, input[type="number"] { width: 100%; padding: 8px; box-sizing: border-box; }
+    .resource-card { position: relative; border: 1px solid #eee; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
+    .close-icon { position: absolute; right: 8px; top: 8px; cursor: pointer; font-weight: 700; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn { padding: 10px 14px; border: 0; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .btn-primary { background: #0a66ff; color: #fff; }
+    .btn-secondary { background: #eee; }
+    .progress { width: 100%; height: 24px; background: #f0f0f0; border-radius: 12px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #2dbb2d; color: #fff; text-align: center; line-height: 24px; white-space: nowrap; }
+    .progress-fill.red { background: #ff4d4d; }
+    .right { text-align: right; }
+    .muted { color: #666; }
+  </style>
 </head>
 <body>
-    <h1>Select an Option</h1>
-    <select id="optionSelect">
-        <option value="1">Option 1</option>
-        <option value="2">Option 2</option>
-        <option value="3">Option 3</option>
-    </select>
-    <button onclick="calculate()">Submit</button>
-    <p id="result"></p>
+  <h1>Fireline Construction Calculator</h1>
 
-    <script>
-        async function calculate() {
-            const option = document.getElementById('optionSelect').value;
-            const response = await fetch('https://pzori7o0r4.execute-api.ap-southeast-2.amazonaws.com/calculate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ option })
-            });
-            const data = await response.json();
-            document.getElementById('result').innerText = `Result: ${data.result}`;
-        }
-    </script>
+  <fieldset>
+    <legend><strong>Fire Conditions</strong></legend>
+    <div class="row2">
+      <div>
+        <label for="fuelType">Fuel Type</label>
+        <select id="fuelType">
+          <option value="NOT_SET" selected>Select Fuel Type</option>
+          <option value="FOREST">Forest</option>
+          <option value="GRASS">Grass</option>
+          <option value="SLASH">Slash</option>
+        </select>
+      </div>
+      <div>
+        <label for="attackLevel">Initial Attack Level</label>
+        <select id="attackLevel">
+          <option value="0" selected>Select Level</option>
+          <option value="1">1 (0–10 kW/m)</option>
+          <option value="2">2 (10–500 kW/m)</option>
+          <option value="3">3 (500–2000 kW/m)</option>
+          <option value="4">4 (2000–4000 kW/m)</option>
+          <option value="5">5 (&gt;4000 kW/m)</option>
+        </select>
+      </div>
+      <div>
+        <label for="fuelResistance">Fuel Resistance</label>
+        <select id="fuelResistance">
+          <option value="NOT_SET" selected>Select Resistance</option>
+          <option value="LOW">Low</option>
+          <option value="MODERATE">Moderate</option>
+          <option value="HIGH">High</option>
+          <option value="EXTREME">Extreme</option>
+        </select>
+      </div>
+      <div>
+        <label for="slope">Slope</label>
+        <select id="slope">
+          <option value="NOT_SET" selected>Select Slope</option>
+          <option value="P15">+15 deg</option>
+          <option value="P10">+10 deg</option>
+          <option value="P5">+5 deg</option>
+          <option value="P0">0 deg</option>
+          <option value="N5">-5 deg</option>
+          <option value="N10">-10 deg</option>
+          <option value="N15">-15 deg</option>
+        </select>
+      </div>
+      <div>
+        <label for="growthRate">Perimeter Growth Rate (m/h)</label>
+        <input id="growthRate" type="number" min="0" step="0.01" placeholder="e.g., 800" />
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend><strong>Resources</strong></legend>
+    <div id="resources"></div>
+    <button type="button" class="btn btn-secondary" id="addResourceBtn">+ Add Resource</button>
+  </fieldset>
+
+  <div class="right">
+    <button type="button" class="btn btn-primary" id="calcBtn">Calculate</button>
+  </div>
+
+  <fieldset>
+    <legend><strong>Results</strong></legend>
+    <div>Total Construction Rate: <strong id="totalRate">0.0</strong> m/h</div>
+    <div>Total Construction Cost: <strong id="totalCost">$0.00</strong> /h</div>
+    <div class="progress" aria-label="Containment vs PGR">
+      <div id="progressFill" class="progress-fill" style="width:0%">0%</div>
+    </div>
+    <div id="error" class="muted"></div>
+  </fieldset>
+
+  <script>
+    const API_URL = "https://pzori7o0r4.execute-api.ap-southeast-2.amazonaws.com/calculate";
+    let resourceIndex = 0;
+
+    function addResource() {
+      const container = document.getElementById('resources');
+      const div = document.createElement('div');
+      div.className = 'resource-card';
+      div.dataset.index = resourceIndex;
+      div.innerHTML = `
+        <label>Resource Type</label>
+        <select onchange="updateConditional(this)" class="resourceType">
+          <option value="NOT_SET">Select Resource</option>
+          <option value="HANDTOOLS">Hand Tools</option>
+          <option value="SMOKECHASER">3 Person Smokechaser</option>
+          <option value="PUMPER">5 Person Pumper</option>
+          <option value="BULLDOZER">Bulldozer</option>
+          <option value="HELICOPTER">Helicopter</option>
+        </select>
+        <span class="close-icon" title="Remove Resource" onclick="removeResource(event)">&times;</span>
+        <div class="conditional"></div>
+      `;
+      container.appendChild(div);
+      resourceIndex++;
+    }
+
+    function removeResource(event) {
+      const card = event.target.closest('.resource-card');
+      if (card) card.remove();
+    }
+
+    function updateConditional(select) {
+      const card = select.closest('.resource-card');
+      const conditional = card.querySelector('.conditional');
+      conditional.innerHTML = '';
+      if (select.value === 'HANDTOOLS') {
+        conditional.innerHTML = '<label># People</label><input type="number" class="crewSize" min="1" max="5" />';
+      } else if (select.value === 'BULLDOZER') {
+        conditional.innerHTML =
+          '<label>Bulldozer Size</label><select class="bulldozerSize">' +
+          '<option value="LIGHT">Light</option>' +
+          '<option value="MEDIUM">Medium</option>' +
+          '<option value="HEAVY">Heavy</option>' +
+          '</select>';
+      }
+    }
+
+    function collectBody() {
+      const fuelType = document.getElementById('fuelType').value;
+      const level = parseInt(document.getElementById('attackLevel').value);
+      const resistance = document.getElementById('fuelResistance').value;
+      const slope = document.getElementById('slope').value;
+      const growthRate = parseFloat(document.getElementById('growthRate').value || 0);
+
+      const resources = Array.from(document.querySelectorAll('.resource-card')).map(card => {
+        const type = card.querySelector('.resourceType').value;
+        const crewSizeEl = card.querySelector('.crewSize');
+        const dozerSizeEl = card.querySelector('.bulldozerSize');
+        const r = { type };
+        if (crewSizeEl) r.crewSize = parseInt(crewSizeEl.value || 0);
+        if (dozerSizeEl) r.bulldozerSize = dozerSizeEl.value;
+        return r;
+      });
+
+      return { fuelType, level, resistance, slope, growthRate, resources };
+    }
+
+    async function calculateViaApi() {
+      const body = collectBody();
+      document.getElementById('error').textContent = '';
+      try {
+        const res = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+
+        // Render results
+        const totalRate = Number(data.totalRate || 0);
+        const totalCost = Number(data.totalCost || 0);
+        const pct = Number.isFinite(data.containmentPercent) ? data.containmentPercent : 0;
+
+        document.getElementById('totalRate').textContent = totalRate.toFixed(1);
+        document.getElementById('totalCost').textContent = `$${totalCost.toFixed(2)}`;
+
+        const fill = document.getElementById('progressFill');
+        fill.style.width = `${pct}%`;
+        fill.textContent = `${Math.round(pct)}%`;
+        fill.className = 'progress-fill' + (pct >= 100 ? '' : ' red');
+      } catch (err) {
+        document.getElementById('error').textContent = err.message;
+      }
+    }
+
+    document.getElementById('addResourceBtn').onclick = addResource;
+    document.getElementById('calcBtn').onclick = calculateViaApi;
+
+    // Start with one resource row
+    addResource();
+  </script>
 </body>
 </html>

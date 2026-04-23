@@ -1,205 +1,376 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Fireline Construction Calculator</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; color: #222; }
-    h1 { margin-top: 0; }
-    fieldset { border: 1px solid #ddd; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
-    label { display: block; margin: 8px 0 4px; font-weight: 600; }
-    select, input[type="number"] { width: 100%; padding: 8px; box-sizing: border-box; }
-    .resource-card { position: relative; border: 1px solid #eee; border-radius: 8px; padding: 12px; margin-bottom: 12px; }
-    .close-icon { position: absolute; right: 8px; top: 8px; cursor: pointer; font-weight: 700; }
-    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .btn { padding: 10px 14px; border: 0; border-radius: 6px; cursor: pointer; font-weight: 600; }
-    .btn-primary { background: #0a66ff; color: #fff; }
-    .btn-secondary { background: #eee; }
-    .progress { width: 100%; height: 24px; background: #f0f0f0; border-radius: 12px; overflow: hidden; }
-    .progress-fill { height: 100%; background: #2dbb2d; color: #fff; text-align: center; line-height: 24px; white-space: nowrap; }
-    .progress-fill.red { background: #ff4d4d; }
-    .right { text-align: right; }
-    .muted { color: #666; }
-  </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Initial Attack Fireline Construction Calculator</title>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background: #f9f9f9;
+}
+
+h1 {
+    text-align: center;
+}
+
+.intro {
+    max-width: 1200px;
+    margin: 0 auto 20px auto;
+    background: #eef4f7;
+    padding: 15px 20px;
+    border-radius: 8px;
+    line-height: 1.5em;
+    font-size: 0.95em;
+}
+
+.main-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.left-column,
+.right-column {
+    flex: 1 1 480px;
+}
+
+.panel {
+    background: #fff;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.1);
+}
+
+.panel h2 {
+    margin-top: 0;
+}
+
+label {
+    display: block;
+    margin-top: 12px;
+    font-weight: bold;
+}
+
+.help-text {
+    font-size: 0.8em;
+    color: #555;
+    margin-top: 3px;
+}
+
+input,
+select {
+    width: 100%;
+    padding: 6px;
+    margin-top: 5px;
+    box-sizing: border-box;
+}
+
+.resource-card {
+    position: relative;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    background: #f0f0f0;
+}
+
+.resource-card .conditional {
+    margin-top: 10px;
+}
+
+.close-icon {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    color: red;
+    background-color: #d3d3d3;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.results {
+    font-size: 1.1em;
+}
+
+.progress-bar {
+    height: 20px;
+    background: #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: green;
+    width: 0%;
+    text-align: center;
+    color: white;
+}
+
+.red {
+    background: red !important;
+}
+
+button {
+    margin-top: 15px;
+    padding: 10px 20px;
+}
+</style>
 </head>
+
 <body>
-  <h1>Fireline Construction Calculator</h1>
 
-  <fieldset>
-    <legend><strong>Fire Conditions</strong></legend>
-    <div class="row2">
-      <div>
-        <label for="fuelType">Fuel Type</label>
-        <select id="fuelType">
-          <option value="NOT_SET" selected>Select Fuel Type</option>
-          <option value="FOREST">Forest</option>
-          <option value="GRASS">Grass</option>
-          <option value="SLASH">Slash</option>
-        </select>
-      </div>
-      <div>
-        <label for="attackLevel">Initial Attack Level</label>
-        <select id="attackLevel">
-          <option value="0" selected>Select Level</option>
-          <option value="1">1 (0–10 kW/m)</option>
-          <option value="2">2 (10–500 kW/m)</option>
-          <option value="3">3 (500–2000 kW/m)</option>
-          <option value="4">4 (2000–4000 kW/m)</option>
-          <option value="5">5 (&gt;4000 kW/m)</option>
-        </select>
-      </div>
-      <div>
-        <label for="fuelResistance">Fuel Resistance</label>
-        <select id="fuelResistance">
-          <option value="NOT_SET" selected>Select Resistance</option>
-          <option value="LOW">Low</option>
-          <option value="MODERATE">Moderate</option>
-          <option value="HIGH">High</option>
-          <option value="EXTREME">Extreme</option>
-        </select>
-      </div>
-      <div>
-        <label for="slope">Slope</label>
-        <select id="slope">
-          <option value="NOT_SET" selected>Select Slope</option>
-          <option value="P15">+15 deg</option>
-          <option value="P10">+10 deg</option>
-          <option value="P5">+5 deg</option>
-          <option value="P0">0 deg</option>
-          <option value="N5">-5 deg</option>
-          <option value="N10">-10 deg</option>
-          <option value="N15">-15 deg</option>
-        </select>
-      </div>
-      <div>
-        <label for="growthRate">Perimeter Growth Rate (m/h)</label>
-        <input id="growthRate" type="number" min="0" step="0.01" placeholder="e.g., 800" />
-      </div>
-    </div>
-  </fieldset>
+<h1>Initial Attack Fireline Construction Calculator</h1>
 
-  <fieldset>
-    <legend><strong>Resources</strong></legend>
-    <div id="resources"></div>
-    <button type="button" class="btn btn-secondary" id="addResourceBtn">+ Add Resource</button>
-  </fieldset>
+<div class="intro">
+    This tool estimates fireline construction capability during initial attack operations.
+    Select fire conditions and assign suppression resources to estimate total construction
+    rate, hourly cost, and whether available resources can keep pace with anticipated fire
+    perimeter growth.
+</div>
 
-  <div class="right">
-    <button type="button" class="btn btn-primary" id="calcBtn">Calculate</button>
-  </div>
+<div class="main-layout">
 
-  <fieldset>
-    <legend><strong>Results</strong></legend>
-    <div>Total Construction Rate: <strong id="totalRate">0.0</strong> m/h</div>
-    <div>Total Construction Cost: <strong id="totalCost">$0.00</strong> /h</div>
-    <div class="progress" aria-label="Containment vs PGR">
-      <div id="progressFill" class="progress-fill" style="width:0%">0%</div>
-    </div>
-    <div id="error" class="muted"></div>
-  </fieldset>
+<!-- LEFT COLUMN -->
+<div class="left-column">
 
-  <script>
-    const API_URL = "https://pzori7o0r4.execute-api.ap-southeast-2.amazonaws.com/calculate";
-    let resourceIndex = 0;
+<div class="panel">
+<h2>Fire Conditions</h2>
 
-    function addResource() {
-      const container = document.getElementById('resources');
-      const div = document.createElement('div');
-      div.className = 'resource-card';
-      div.dataset.index = resourceIndex;
-      div.innerHTML = `
-        <label>Resource Type</label>
-        <select onchange="updateConditional(this)" class="resourceType">
-          <option value="NOT_SET">Select Resource</option>
-          <option value="HANDTOOLS">Hand Tools</option>
-          <option value="SMOKECHASER">3 Person Smokechaser</option>
-          <option value="PUMPER">5 Person Pumper</option>
-          <option value="BULLDOZER">Bulldozer</option>
-          <option value="HELICOPTER">Helicopter</option>
-        </select>
-        <span class="close-icon" title="Remove Resource" onclick="removeResource(event)">&times;</span>
-        <div class="conditional"></div>
-      `;
-      container.appendChild(div);
-      resourceIndex++;
-    }
+<label>Fuel Type</label>
+<div class="help-text">Select the predominant fuel type being encountered during construction.</div>
+<select id="fuelType" onchange="calculate()">
+    <option value="NOT_SET">Select Fuel Type</option>
+    <option value="FOREST">Forest</option>
+    <option value="GRASS">Grass</option>
+    <option value="SLASH">Slash</option>
+</select>
 
-    function removeResource(event) {
-      const card = event.target.closest('.resource-card');
-      if (card) card.remove();
-    }
+<label>Initial Attack Level</label>
+<div class="help-text">
+Select the best representative fire intensity range for the construction area.
+</div>
+<select id="attackLevel" onchange="calculate()">
+    <option value="NOT_SET">Select Level</option>
+    <option value="1">1 (0–10 kW/m)</option>
+    <option value="2">2 (10–500 kW/m)</option>
+    <option value="3">3 (500–2000 kW/m)</option>
+    <option value="4">4 (2000–4000 kW/m)</option>
+    <option value="5">5 (&gt;4000 kW/m)</option>
+</select>
 
-    function updateConditional(select) {
-      const card = select.closest('.resource-card');
-      const conditional = card.querySelector('.conditional');
-      conditional.innerHTML = '';
-      if (select.value === 'HANDTOOLS') {
-        conditional.innerHTML = '<label># People</label><input type="number" class="crewSize" min="1" max="5" />';
-      } else if (select.value === 'BULLDOZER') {
-        conditional.innerHTML =
-          '<label>Bulldozer Size</label><select class="bulldozerSize">' +
-          '<option value="LIGHT">Light</option>' +
-          '<option value="MEDIUM">Medium</option>' +
-          '<option value="HEAVY">Heavy</option>' +
-          '</select>';
-      }
-    }
+<label>Fuel Resistance</label>
+<div class="help-text">
+Estimate how resistant the fuel complex is to control line construction.
+</div>
+<select id="fuelResistance" onchange="calculate()">
+    <option value="NOT_SET">Select Resistance</option>
+    <option value="LOW">Low</option>
+    <option value="MODERATE">Moderate</option>
+    <option value="HIGH">High</option>
+    <option value="EXTREME">Extreme</option>
+</select>
 
-    function collectBody() {
-      const fuelType = document.getElementById('fuelType').value;
-      const level = parseInt(document.getElementById('attackLevel').value);
-      const resistance = document.getElementById('fuelResistance').value;
-      const slope = document.getElementById('slope').value;
-      const growthRate = parseFloat(document.getElementById('growthRate').value || 0);
+<label>Slope Steepness</label>
+<div class="help-text">
+Average terrain slope affecting construction difficulty and fire behavior.
+</div>
+<select id="slope" onchange="calculate()">
+    <option value="NOT_SET">Select Slope</option>
+    <option value="P15">+15° (Upslope)</option>
+    <option value="P10">+10°</option>
+    <option value="P5">+5°</option>
+    <option value="P0">0°</option>
+    <option value="N5">–5°</option>
+    <option value="N10">–10°</option>
+    <option value="N15">–15° (Downslope)</option>
+</select>
 
-      const resources = Array.from(document.querySelectorAll('.resource-card')).map(card => {
-        const type = card.querySelector('.resourceType').value;
-        const crewSizeEl = card.querySelector('.crewSize');
-        const dozerSizeEl = card.querySelector('.bulldozerSize');
-        const r = { type };
-        if (crewSizeEl) r.crewSize = parseInt(crewSizeEl.value || 0);
-        if (dozerSizeEl) r.bulldozerSize = dozerSizeEl.value;
-        return r;
-      });
+<label>Perimeter Growth Rate (m/h)</label>
+<div class="help-text">
+Estimated hourly fire perimeter expansion under current conditions.
+</div>
+<input id="growthRate" type="number" oninput="calculate()"/>
 
-      return { fuelType, level, resistance, slope, growthRate, resources };
-    }
+</div>
 
-    async function calculateViaApi() {
-      const body = collectBody();
-      document.getElementById('error').textContent = '';
-      try {
-        const res = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
+<div class="panel">
+<h2>Results</h2>
 
-        // Render results
-        const totalRate = Number(data.totalRate || 0);
-        const totalCost = Number(data.totalCost || 0);
-        const pct = Number.isFinite(data.containmentPercent) ? data.containmentPercent : 0;
+<div class="results">
+<p>Total Construction Rate: <span id="totalRate">0</span> m/h</p>
+<p>Total Construction Cost: $<span id="totalCost">0</span> /h</p>
 
-        document.getElementById('totalRate').textContent = totalRate.toFixed(1);
-        document.getElementById('totalCost').textContent = `$${totalCost.toFixed(2)}`;
+<div class="progress-bar">
+    <div class="progress-fill" id="progressFill">0%</div>
+</div>
+</div>
 
-        const fill = document.getElementById('progressFill');
-        fill.style.width = `${pct}%`;
-        fill.textContent = `${Math.round(pct)}%`;
-        fill.className = 'progress-fill' + (pct >= 100 ? '' : ' red');
-      } catch (err) {
-        document.getElementById('error').textContent = err.message;
-      }
-    }
+</div>
+</div>
 
-    document.getElementById('addResourceBtn').onclick = addResource;
-    document.getElementById('calcBtn').onclick = calculateViaApi;
+<!-- RIGHT COLUMN -->
+<div class="right-column">
 
-    // Start with one resource row
-    addResource();
-  </script>
+<div class="panel">
+<h2>Resources</h2>
+<div class="help-text">
+Add all suppression resources contributing directly to fireline construction.
+</div>
+
+<div id="resources"></div>
+
+<button onclick="addResource()">
+Add Resource <i class="fas fa-plus-circle" style="color:teal; margin-left:6px;"></i>
+</button>
+
+</div>
+</div>
+
+</div>
+
+<script>
+let resourceIndex = 0;
+
+function addResource() {
+ const container = document.getElementById('resources');
+ const div = document.createElement('div');
+ div.className = 'resource-card';
+ div.dataset.index = resourceIndex;
+ div.innerHTML = `
+ <label>Resource Type</label>
+ <select onchange="updateConditional(this)" class="resourceType">
+ <option value="NOT_SET">Select Resource</option>
+ <option value="HANDTOOLS">Hand Tools</option>
+ <option value="SMOKECHASER">3 Person Smokechaser</option>
+ <option value="PUMPER">5 Person Pumper</option>
+ <option value="BULLDOZER">Bulldozer</option>
+ <option value="HELICOPTER">Helicopter</option>
+ </select>
+
+ <span class="close-icon" title="Remove Resource" onclick="removeResource(event)">
+ <i class="fas fa-times"></i>
+ </span>
+
+ <div class="conditional"></div>
+ `;
+ container.appendChild(div);
+ resourceIndex++;
+ calculate();
+}
+
+function removeResource(event) {
+ const card = event.target.closest('.resource-card');
+ if (card) {
+   card.remove();
+   calculate();
+ }
+}
+
+function updateConditional(select) {
+ const card = select.closest('.resource-card');
+ const conditional = card.querySelector('.conditional');
+ conditional.innerHTML = '';
+
+ if (select.value === 'HANDTOOLS') {
+   conditional.innerHTML =
+     '<label># People</label>' +
+     '<input type="number" class="crewSize" min="1" max="5" oninput="calculate()"/>';
+ } else if (select.value === 'BULLDOZER') {
+   conditional.innerHTML =
+     '<label>Bulldozer Size</label>' +
+     '<select class="bulldozerSize" onchange="calculate()">' +
+     '<option value="LIGHT">Light</option>' +
+     '<option value="MEDIUM">Medium</option>' +
+     '<option value="HEAVY">Heavy</option>' +
+     '</select>';
+ }
+
+ calculate();
+}
+
+function calculate() {
+ const fuelType = document.getElementById('fuelType').value;
+ const level = parseInt(document.getElementById('attackLevel').value);
+ const resistance = document.getElementById('fuelResistance').value;
+ const slope = document.getElementById('slope').value;
+ const growthRate = parseFloat(document.getElementById('growthRate').value);
+
+ let totalRate = 0;
+ let totalCost = 0;
+
+ document.querySelectorAll('.resource-card').forEach(card => {
+ const type = card.querySelector('.resourceType').value;
+ let rate = 0;
+ let cost = 0;
+
+ if (type === 'HANDTOOLS') {
+   const n = parseInt(card.querySelector('.crewSize')?.value || 0);
+   if (!isNaN(n) && level) {
+     rate = ((-2.86 * level * level - 4.86 * level + 172) * n) / 5.0;
+     cost = 42 * n;
+   }
+ } else if (type === 'SMOKECHASER') {
+   if (level) {
+     rate = -0.71 * level * level - 6.71 * level + 90;
+     cost = 3 * 42 + 45;
+   }
+ } else if (type === 'PUMPER') {
+   if (level && fuelType !== 'NOT_SET') {
+     rate = (fuelType === 'GRASS') ? (-108 * level + 958) : (-54 * level + 478);
+     cost = 5 * 42 + 250;
+   }
+ } else if (type === 'BULLDOZER') {
+   const size = card.querySelector('.bulldozerSize')?.value;
+   if (size && resistance !== 'NOT_SET' && slope !== 'NOT_SET') {
+     const kW = { LIGHT: 110, MEDIUM: 150, HEAVY: 230 }[size];
+     const rFactor = { LOW: 5, MODERATE: 2, HIGH: 1, EXTREME: 0.5 }[resistance];
+     const sFactor = { P15: 0.5, P10: 0.65, P5: 0.8, P0: 1, N5: 1.15, N10: 1.25, N15: 1.15 }[slope];
+     rate = kW * rFactor * sFactor;
+     cost = { LIGHT: 100, MEDIUM: 170, HEAVY: 250 }[size];
+   }
+ } else if (type === 'HELICOPTER') {
+   if (level && fuelType !== 'NOT_SET') {
+     if (fuelType === 'GRASS') rate = -50 * level + 790;
+     else if (fuelType === 'SLASH') rate = -44 * level + 576;
+     else rate = -60 * level + 520;
+     cost = 2000;
+   }
+ }
+
+ totalRate += rate;
+ totalCost += cost;
+ });
+
+ document.getElementById('totalRate').textContent = totalRate.toFixed(1);
+ document.getElementById('totalCost').textContent = totalCost.toFixed(2);
+
+ const fill = document.getElementById('progressFill');
+ if (!isNaN(growthRate) && growthRate > 0) {
+   const pct = Math.min(100, (totalRate / growthRate) * 100);
+   fill.style.width = pct + '%';
+   fill.textContent = pct.toFixed(0) + '%';
+   fill.className = 'progress-fill' + (totalRate >= growthRate ? '' : ' red');
+ } else {
+   fill.style.width = '0%';
+   fill.textContent = '0%';
+   fill.className = 'progress-fill';
+ }
+}
+</script>
+
 </body>
 </html>
